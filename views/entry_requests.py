@@ -3,6 +3,8 @@ import sqlite3
 
 from models.entry import Entry
 from models.mood import Mood
+from models.tag import Tag
+from models.entry_tag import Entry_tag
 
 
 def get_all_entries():
@@ -35,6 +37,7 @@ def get_all_entries():
                 row['mood_id'],
                 row['date']
             )
+
             mood = Mood(
                 row['mood_id'],
                 row['mood_label']
@@ -42,7 +45,31 @@ def get_all_entries():
 
             entry.mood = mood.__dict__
 
+            db_cursor.execute("""
+            SELECT
+                t.id,
+                t.name
+            FROM Entry e
+            JOIN Entrytags et
+                ON e.id = et.entry_id
+            JOIN Tags t
+                ON t.id = et.tag_id
+            WHERE e.id = ?
+            """, (entry.id, )
+            )
+
+            tag_list = db_cursor.fetchall()
+
+            for et_row in tag_list:
+                tag = Tag(
+                    et_row['id'],
+                    et_row['name']
+                )
+
+                entry.tags.append(tag.__dict__)
+
             entries.append(entry.__dict__)
+
     return json.dumps(entries)
 
 
@@ -158,6 +185,47 @@ def create_entry(new_entry):
         )
 
         id = db_cursor.lastrowid
-        new_entry['id'] = id
+
+        for tag in new_entry['tags']:
+
+            db_cursor.execute("""
+            INSERT INTO Entrytags
+                (entry_id, tag_id)
+            VALUES
+                (?,?);
+                
+                """, (id, tag)
+            )
 
     return json.dumps(new_entry)
+
+
+def update_entry(id, new_entry):
+    with sqlite3.connect("./journal.sqlite3") as conn:
+        conn.row_factory = sqlite3.Row
+        db_cursor = conn.cursor()
+
+        db_cursor.execute("""
+        UPDATE Entry
+            SET
+                concept = ?,
+                entry = ?,
+                mood_id = ?,
+                date = ?
+        WHERE id = ?
+        """, (
+            new_entry['concept'],
+            new_entry['entry'],
+            new_entry['mood_id'],
+            new_entry['date'],
+            id, )
+        )
+
+        rows_affected = db_cursor.rowcount
+
+    if rows_affected == 0:
+        # Forces 404 response by main module
+        return False
+    else:
+        # Forces 204 response by main module
+        return True
