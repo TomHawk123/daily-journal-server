@@ -2,14 +2,7 @@ CREATE TABLE 'Mood' (
   'id' INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
   'label' TEXT NOT NULL
 );
-CREATE TABLE 'Entry' (
-  'id' INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-  'concept' TEXT NOT NULL,
-  'entry' TEXT NOT NULL,
-  'mood_id' INTEGER NOT NULL,
-  'date' TEXT NOT NULL,
-  FOREIGN KEY(`mood_id`) REFERENCES `Mood`(`id`)
-);
+
 INSERT INTO 'Mood'
 VALUES (null, 'Happy');
 INSERT INTO 'Mood'
@@ -18,6 +11,17 @@ INSERT INTO 'Mood'
 VALUES (null, 'Angry');
 INSERT INTO 'Mood'
 VALUES (null, 'Ok');
+
+
+CREATE TABLE 'Entry' (
+  'id' INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  'concept' TEXT NOT NULL,
+  'entry' TEXT NOT NULL,
+  'mood_id' INTEGER NOT NULL,
+  'date' TEXT NOT NULL,
+  FOREIGN KEY(`mood_id`) REFERENCES `Mood`(`id`)
+);
+
 INSERT INTO 'Entry'
 VALUES (
     null,
@@ -50,6 +54,31 @@ VALUES (
     3,
     "Wed Sep 15 2021 10:14:05"
   );
+
+
+CREATE TABLE 'Tags' (
+  'id' INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  'name' TEXT NOT NULL
+);
+
+INSERT INTO "Tags" VALUES (null, "Cool");
+INSERT INTO "Tags" VALUES (null, "Gangster");
+INSERT INTO "Tags" VALUES (null, "BORING");
+
+CREATE TABLE 'Entrytags' (
+  'id' INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+  'entry_id' INTEGER NOT NULL,
+  'tag_id' INTEGER NOT NULL,
+  FOREIGN KEY('entry_id') REFERENCES 'Entry'('id'),
+  FOREIGN KEY('tag_id') REFERENCES 'Tags'('id')
+);
+
+INSERT INTO 'Entrytags' VALUES (null, 1, 1)
+
 UPDATE Entry
 SET entry = "I learned about loops today. They can be a lot of fun."
 WHERE id = 1;
+
+
+DELETE FROM Entry
+WHERE id = 5;
